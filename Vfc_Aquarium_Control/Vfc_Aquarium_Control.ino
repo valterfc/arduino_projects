@@ -47,5 +47,5 @@ void loop() {
  
 void handleRootPath() {            //Handler for the rooth path
   //server.send(200, "text/plain", "Hello world");
-  printPageIndex();
+  server.send(200, "text/html; charset=utf-8", printPageIndex());
 }
