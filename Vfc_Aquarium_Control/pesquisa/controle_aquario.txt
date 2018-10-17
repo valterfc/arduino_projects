@@ -83,3 +83,318 @@ https://www.instructables.com/id/Using-ESP8266-SPIFFS/
 http://esp8266.github.io/Arduino/versions/2.0.0/doc/filesystem.html
 https://github.com/zenmanenergy/ESP8266-Arduino-Examples/blob/master/helloworld_read_write_text_file/file.ino
 
+
+https://hackaday.com/2016/05/09/minimal-mqtt-building-a-broker/
+https://hackaday.com/2016/05/27/minimal-mqtt-control-and-clients/
+
+
+https://medium.com/@oieduardorabelo/evitando-erros-com-eslint-91b5a4bb9471
+https://github.com/GoogleChromeLabs/sample-media-pwa
+https://eslint.org/docs/user-guide/getting-started
+
+
+  "scripts": {
+    "start": "node dist/server/index.js",
+    "clean-dist": "rm -rf dist",
+    "make-dist": "mkdirp dist",
+    "make-client": "mkdirp dist/client",
+    "copy-all": "npm run copy-server && npm run copy-config && npm run copy-views && npm run copy-client",
+    "copy-server": "cp -R src/server dist",
+    "copy-config": "cp -R src/config dist",
+    "copy-views": "cp -R src/views dist",
+    "copy-client": "copy \"src/client/**/*.*\" \"!src/client/scripts/**/*.*\" \"!src/client/styles/**/*.*\" \"!src/client/videos/**/*.*\" dist/client",
+    "serve": "nodemon -e dust,js,css,json dist/server/index.js",
+    "dev": "npm run build && parallelshell \"npm run watch\" \"npm run serve\"",
+    "watch": "npm-watch",
+    "build": "npm run clean-dist && npm run make-dist && npm run make-client && npm run copy-all && npm run build-js && npm run build-sass && npm run build-resource-list",
+    "build-js": "node build/transpile-javascript.js",
+    "build-resource-list": "node build/build-resource-list.js",
+    "build-sass": "node build/transpile-sass.js",
+    "build-js-and-sass": "npm run build-js && npm run build-sass && npm run build-resource-list",
+    "release": "npm version patch && npm run build"
+},
+
+  "scripts": {
+    "clean": "node build/script.clean.js",
+    "dev": "node build/script.dev.js",
+    "build": "node build/script.build.js",
+    "lint": "eslint --ext .js,.vue src"
+},
+
+
+https://github.com/G6EJD/ESP32-8266-File-Download
+https://github.com/valterfc/ESP32-8266-File-Download
+
+
+https://app-manifest.firebaseapp.com/
+
+https://www.aconvert.com/image/png-to-svg/
+
+String ICACHE_FLASH_ATTR ESPArto::readSPIFFS(const char* fn){
+	String rv;
+	File f=SPIFFS.open(fn, "r");
+	if(f) {
+		int n=f.size();
+		Serial.printf("readSPIFFS size=%d\n",n);
+		char* buff=(char *) malloc(n);
+		f.readBytes(buff,n);
+		rv=buff;
+		free(buff);
+	}
+	f.close();
+	return rv;	
+}
+
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Headers/Content-Type
+
+
+
+
+------------------------
+
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266WebServer.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#include <TimeLib.h>
+#include <WiFiUdp.h>
+#define ONE_WIRE_BUS 14 //Data wire on physical pin 0
+
+class relay { //Define relay class
+  public:
+    int relayID;
+    String relayName;
+    int pinID;
+    int stateDefault;
+    int scheduleOn;
+    int scheduleOff;
+    //Enable or disable the relay. A low pin enables the relay in this case.
+    void setRelay(int relayState) {
+      if (relayState == 1) {
+        digitalWrite(pinID, LOW);
+      }
+      else if (relayState == 0) {
+        digitalWrite(pinID, HIGH);
+      }
+    }
+   
+    //Return the relay status. A low pin means that the relay is enabled.
+    bool getRelay() {
+      if (digitalRead(pinID) == 0) {
+        return 1;
+      }
+      else if (digitalRead(pinID) == 1) {
+        return 0;
+      }
+    }
+   
+    //getRelayCurrentState and encode the results into html
+    String getCurrentStateHTML() {
+      if (getRelay() == 1){
+        return "<statusON>ON</statusON>";
+      }
+      else if (getRelay()  == 0){
+        return "<statusOFF>OFF</statusOFF>";
+      }
+    }
+   
+    //Initial relay creation
+    relay(int rID, String rName, int rPin, int sDefault, int schOn, int schOff){
+
+      relayID = rID;
+      relayName = rName;
+      pinID = rPin;
+      stateDefault = sDefault;
+      scheduleOn = schOn;
+      scheduleOff = schOff;
+
+      pinMode(pinID, OUTPUT); //Enable pin as output
+      digitalWrite(pinID, HIGH); //Initial open relay
+    }
+ 
+}; //End relay class definition
+
+//Create relay objects
+relay relay1(1, "Basking Lamp", 5, 0, 1000, 1900);
+relay relay2(2, "UV Lamp", 4, 1, NULL, NULL);
+relay relay3(3, "Pump", 0, 1, NULL, NULL);
+relay relay4(4, "Siphon Starter", 2, 0, NULL, NULL);
+
+int siphonMonPin = 12; //Define siphon pin
+
+int siphonAutoTime; //Stores the time that the siphon starter was automatically enabled.
+
+//TEMPORARY define SSID/PSK
+const char* ssid     = "106NET";
+const char* password = "B1u3b3RR!3s69";
+
+//Initialize temperature sensor
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+ 
+ESP8266WebServer server(80);
+
+
+// NTP Servers:
+//static const char ntpServerName[] = "us.pool.ntp.org";
+static const char ntpServerName[] = "time.nist.gov";
+//static const char ntpServerName[] = "time-a.timefreq.bldrdoc.gov";
+//static const char ntpServerName[] = "time-b.timefreq.bldrdoc.gov";
+//static const char ntpServerName[] = "time-c.timefreq.bldrdoc.gov";
+
+//const int timeZone = 1;     // Central European Time
+const int timeZone = -5;  // Eastern Standard Time (USA)
+//const int timeZone = -4;  // Eastern Daylight Time (USA)
+//const int timeZone = -8;  // Pacific Standard Time (USA)
+//const int timeZone = -7;  // Pacific Daylight Time (USA)
+
+
+WiFiUDP Udp;
+unsigned int localPort = 8888;  // local port to listen for UDP packets
+
+time_t getNtpTime();
+
+int currentTime; //Stores the current time
+
+void setup(){
+   
+  Serial.begin(115200);  // Serial connection start
+
+  // Connect to WiFi network
+  WiFi.begin(ssid, password);
+  Serial.print("\n\r \n\rWorking to connect");
+ 
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("Connected to ");
+  Serial.println(ssid);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+ 
+  server.on("/", handleRoot);
+ 
+  server.on("/temp", [](){
+    String temp_f = String(getTemperature());       // read sensor
+    server.send(200, "text/plain", temp_f);
+  });
+
+  //Initialize Relays
+  initializeRelay(relay1);
+  initializeRelay(relay2);
+  initializeRelay(relay3);
+  initializeRelay(relay4);
+
+  pinMode(siphonMonPin, INPUT); //Enable siphon sonitor pin
+
+  sensors.begin(); // initialize temperature sensor 
+
+  server.begin(); //Start web server
+  Serial.println("HTTP server started");
+
+  Udp.begin(localPort);
+  Serial.print("Local port: ");
+  Serial.println(Udp.localPort());
+  Serial.println("waiting for sync");
+  setSyncProvider(getNtpTime);
+  setSyncInterval(300);
+
+}
+ 
+void loop()
+{
+  server.handleClient();
+  updateTime();
+  checkSiphon(relay3, relay4);
+  checkSchedule(relay1);
+  checkSchedule(relay2);
+  checkSchedule(relay3);
+  checkSchedule(relay4);
+} 
+
+void initializeRelay (relay& rID) {
+  server.on("/relay" + String(rID.relayID) + "_on", [&, rID] (){
+    rID.setRelay(1);
+    server.send(200, "html", "<head><meta http-equiv=\"refresh\" content=\"0; url=/\" /></head>");
+  });
+  server.on("/relay" + String(rID.relayID) + "_off", [&, rID] (){
+    rID.setRelay(0);
+    server.send(200, "html", "<head><meta http-equiv=\"refresh\" content=\"0; url=/\" /></head>");
+  });
+  server.on("/relay" + String(rID.relayID) + "_status", [&, rID] (){
+    server.send(200, "text/plain", int(rID.getRelay()));
+  });
+  rID.setState(rID.defaultState);
+}
+
+
+--------------
+
+//Relay power controls
+  server.on("/relay1_on", [] (){
+    relay1.setRelay(1);
+    relay1.manualState = 1;
+    server.send(200, "html", "<head><meta http-equiv=\"refresh\" content=\"0; url=/\" /></head>");
+  });
+  server.on("/relay1_off", [] (){
+    relay1.setRelay(0);
+    relay1.manualState = 0;
+    server.send(200, "html", "<head><meta http-equiv=\"refresh\" content=\"0; url=/\" /></head>");
+  });
+  server.on("/relay1_status", [] (){
+    server.send(200, "text/plain", String(relay1.getRelay()));
+  });
+  server.on("/relay2_on", [] () {
+    relay2.setRelay(1);
+    relay2.manualState = 1;
+    server.send(200, "html", "<head><meta http-equiv=\"refresh\" content=\"0; url=/\" /></head>");
+  });
+  server.on("/relay2_off", [] () {
+    relay2.setRelay(0);
+    relay2.manualState = 0;
+    server.send(200, "html", "<head><meta http-equiv=\"refresh\" content=\"0; url=/\" /></head>");
+  });
+  server.on("/relay2_status", [] (){
+    server.send(200, "text/plain", String(relay2.getRelay()));
+  });
+  server.on("/relay3_on", [] () {
+    relay3.setRelay(1);
+    relay3.manualState = 1;
+    server.send(200, "html", "<head><meta http-equiv=\"refresh\" content=\"0; url=/\" /></head>");
+  });
+  server.on("/relay3_off", [] () {
+    relay3.setRelay(0);
+    relay3.manualState = 0;
+    server.send(200, "html", "<head><meta http-equiv=\"refresh\" content=\"0; url=/\" /></head>");
+  });
+  server.on("/relay3_status", [] (){
+    server.send(200, "text/plain", String(relay3.getRelay()));
+  });
+  server.on("/relay4_on", [] () {
+    relay4.setRelay(1);
+    relay4.manualState = 1;
+    server.send(200, "html", "<head><meta http-equiv=\"refresh\" content=\"0; url=/\" /></head>");
+  });
+  server.on("/relay4_off", [] () {
+    relay4.setRelay(0);
+    relay4.manualState = 0;
+    server.send(200, "html", "<head><meta http-equiv=\"refresh\" content=\"0; url=/\" /></head>");
+  });
+  server.on("/relay4_status", [] (){
+    server.send(200, "text/plain", String(relay4.getRelay()));
+  });
+
+ 
+ 
+ 
+ 
+ https://github.com/sim1234/MiniApache
+ 
+ 
+ 
