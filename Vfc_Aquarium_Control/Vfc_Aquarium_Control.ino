@@ -2,6 +2,7 @@
 #include "ESP8266WebServer.h"
 #include "config.h"
 #include "page_index.h"
+#include "FS.h"
 
 ESP8266WebServer server(80);
 
@@ -31,6 +32,40 @@ void setup() {
 
   digitalWrite(BUILTIN_LED, HIGH); //LED DA PLACA APAGA (ACIONAMENTO COM SINAL LÓGICO INVERSO PARA O PINO 2)
   delay(1000); //INTERVALO DE 1 SEGUNDO
+
+  if (SPIFFS.begin()) {
+      Serial.println('file system was mounted successfully');
+  }
+
+  Serial.println("varendo diretorios: ");
+  Dir dir = SPIFFS.openDir("");
+  while (dir.next()) {
+      Serial.print(dir.fileName() + ' : ');
+      File f = dir.openFile("r");
+      Serial.println(f.size());
+  }  
+
+/*
+  Serial.println("varendo diretorios: /");
+  dir = SPIFFS.openDir("/");
+  while (dir.next()) {
+      Serial.print(dir.fileName());
+      File f = dir.openFile("r");
+      Serial.println(f.size());
+  }  
+*/
+
+/*
+  Serial.println("varendo diretorios: /data");
+  dir = SPIFFS.openDir("/data");
+  while (dir.next()) {
+      Serial.print("data" + dir.fileName());
+      File f = dir.openFile("r");
+      Serial.println(f.size());
+  }  
+*/
+
+  Serial.println('list files end');
 }
  
 void loop() {

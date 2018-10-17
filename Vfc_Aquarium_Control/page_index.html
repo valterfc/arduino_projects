@@ -1,13 +1,657 @@
-<!DOCTYPE html>
-<html lang='en'>
+<html>
 <head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <meta http-equiv='X-UA-Compatible' content='ie=edge'>
-    <title>ESP8266 Aquarium Control</title>
-    <style>@import url(https://fonts.googleapis.com/css?family=Exo+2);.gooey,.gooey:after,.gooey:before{border-radius:42% 58% 70% 30%/45% 45% 55% 55%}*{margin:0;padding:0;box-sizing:content-box}body,html{width:100vw;height:100vh;background:#0d0722}body{display:flex;align-items:center;justify-content:center;overflow:hidden;color:#fff;font-family:'Exo 2';font-size:24px;animation:fadeIn .5s reverse}.gooey,.gooey:before{animation:morph 3s linear infinite}.gooey{background-image:linear-gradient(120deg,#34e0f0 0,#b400ff 100%);width:150px;height:144px;transform-style:preserve-3d;outline:transparent solid 1px;will-change:border-radius}.gooey:after,.gooey:before{content:'';width:100%;height:100%;display:block;position:absolute;left:0;top:0;box-shadow:5px 5px 89px rgba(0,102,255,.21);will-change:border-radius,transform,opacity;animation-delay:.2s;background-image:linear-gradient(120deg,rgba(0,67,255,.55) 0,rgba(0,103,255,.89) 100%)}.gooey:before{opacity:.21;animation-duration:1.5s}.gooey:after{animation:morph 3s linear infinite;animation-delay:.4s;opacity:.89;content:'ESP8266 CSS';line-height:120px;text-indent:-21px}@keyframes morph{0%,100%{border-radius:42% 58% 70% 30%/45% 45% 55% 55%;transform:translate3d(0,0,0) rotateZ(.01deg)}34%{border-radius:70% 30% 46% 54%/30% 29% 71% 70%;transform:translate3d(0,5px,0) rotateZ(.01deg)}50%{opacity:.89;transform:translate3d(0,0,0) rotateZ(.01deg)}67%{border-radius:100% 60% 60% 100%/100% 100% 60% 60%;transform:translate3d(0,-3px,0) rotateZ(.01deg)}}@keyframes fadeIn{100%{transform:scale(1.03);opacity:0}}</style>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <meta name='description' content='Vfc ESP8266 Aquarium Controller'>
+  <title>Vfc AquaControl</title>
+
+    <style>
+		* {
+		  box-sizing: border-box; }
+
+		html, body {
+		  padding: 0;
+		  margin: 0;
+		  height: 100%;
+		  width: 100%;
+		  font-family: 'Helvetica', 'Verdana', sans-serif;
+		  font-weight: 400;
+		  font-display: optional;
+		  color: #444;
+		  -webkit-font-smoothing: antialiased;
+		  -moz-osx-font-smoothing: grayscale; }
+
+		html {
+		  overflow: hidden; }
+
+		body {
+		  display: -webkit-box;
+		  display: -webkit-flex;
+		  display: -ms-flexbox;
+		  display: flex;
+		  -webkit-box-orient: vertical;
+		  -webkit-box-direction: normal;
+		  -webkit-flex-direction: column;
+			  -ms-flex-direction: column;
+				  flex-direction: column;
+		  -webkit-flex-wrap: nowrap;
+			  -ms-flex-wrap: nowrap;
+				  flex-wrap: nowrap;
+		  -webkit-box-pack: start;
+		  -webkit-justify-content: flex-start;
+			  -ms-flex-pack: start;
+				  justify-content: flex-start;
+		  -webkit-box-align: stretch;
+		  -webkit-align-items: stretch;
+			  -ms-flex-align: stretch;
+				  align-items: stretch;
+		  -webkit-align-content: stretch;
+			  -ms-flex-line-pack: stretch;
+				  align-content: stretch;
+		  background: #ececec; }
+
+		.header {
+		  width: 100%;
+		  height: 56px;
+		  color: #FFF;
+		  background: #3F51B5;
+		  position: fixed;
+		  font-size: 20px;
+		  box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 2px 9px 1px rgba(0, 0, 0, 0.12), 0 4px 2px -2px rgba(0, 0, 0, 0.2);
+		  padding: 16px 16px 0 16px;
+		  will-change: transform;
+		  display: -webkit-box;
+		  display: -webkit-flex;
+		  display: -ms-flexbox;
+		  display: flex;
+		  -webkit-box-orient: horizontal;
+		  -webkit-box-direction: normal;
+		  -webkit-flex-direction: row;
+			  -ms-flex-direction: row;
+				  flex-direction: row;
+		  -webkit-flex-wrap: nowrap;
+			  -ms-flex-wrap: nowrap;
+				  flex-wrap: nowrap;
+		  -webkit-box-pack: start;
+		  -webkit-justify-content: flex-start;
+			  -ms-flex-pack: start;
+				  justify-content: flex-start;
+		  -webkit-box-align: stretch;
+		  -webkit-align-items: stretch;
+			  -ms-flex-align: stretch;
+				  align-items: stretch;
+		  -webkit-align-content: center;
+			  -ms-flex-line-pack: center;
+				  align-content: center;
+		  -webkit-transition: -webkit-transform 0.233s cubic-bezier(0, 0, 0.21, 1) 0.1s;
+		  transition: -webkit-transform 0.233s cubic-bezier(0, 0, 0.21, 1) 0.1s;
+		  transition: transform 0.233s cubic-bezier(0, 0, 0.21, 1) 0.1s;
+		  transition: transform 0.233s cubic-bezier(0, 0, 0.21, 1) 0.1s, -webkit-transform 0.233s cubic-bezier(0, 0, 0.21, 1) 0.1s;
+		  z-index: 1000; }
+		  .header .headerButton {
+			width: 24px;
+			height: 24px;
+			margin-right: 16px;
+			text-indent: -30000px;
+			overflow: hidden;
+			opacity: 0.54;
+			-webkit-transition: opacity 0.333s cubic-bezier(0, 0, 0.21, 1);
+			transition: opacity 0.333s cubic-bezier(0, 0, 0.21, 1);
+			border: none;
+			outline: none;
+			cursor: pointer; }
+		  .header #butRefresh {
+			background: 'ic_refresh_white_24px.svg' center center no-repeat; }
+		  .header #butAdd {
+			background: 'ic_add_white_24px.svg' center center no-repeat; }
+
+		.header__title {
+		  font-weight: 400;
+		  font-size: 20px;
+		  margin: 0;
+		  -webkit-box-flex: 1;
+		  -webkit-flex: 1;
+			  -ms-flex: 1;
+				  flex: 1; }
+
+		.loader {
+		  left: 50%;
+		  top: 50%;
+		  position: fixed;
+		  -webkit-transform: translate(-50%, -50%);
+				  transform: translate(-50%, -50%); }
+		  .loader #ud811Spinner {
+			box-sizing: border-box;
+			stroke: #673AB7;
+			stroke-width: 3px;
+			-webkit-transform-origin: 50%;
+					transform-origin: 50%;
+			-webkit-animation: line 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite, rotate 1.6s linear infinite;
+					animation: line 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite, rotate 1.6s linear infinite; }
+
+		@-webkit-keyframes rotate {
+		  from {
+			-webkit-transform: rotate(0);
+					transform: rotate(0); }
+		  to {
+			-webkit-transform: rotate(450deg);
+					transform: rotate(450deg); } }
+
+		@keyframes rotate {
+		  from {
+			-webkit-transform: rotate(0);
+					transform: rotate(0); }
+		  to {
+			-webkit-transform: rotate(450deg);
+					transform: rotate(450deg); } }
+
+		@-webkit-keyframes line {
+		  0% {
+			stroke-dasharray: 2, 85.964;
+			-webkit-transform: rotate(0);
+					transform: rotate(0); }
+		  50% {
+			stroke-dasharray: 65.973, 21.9911;
+			stroke-dashoffset: 0; }
+		  100% {
+			stroke-dasharray: 2, 85.964;
+			stroke-dashoffset: -65.973;
+			-webkit-transform: rotate(90deg);
+					transform: rotate(90deg); } }
+
+		@keyframes line {
+		  0% {
+			stroke-dasharray: 2, 85.964;
+			-webkit-transform: rotate(0);
+					transform: rotate(0); }
+		  50% {
+			stroke-dasharray: 65.973, 21.9911;
+			stroke-dashoffset: 0; }
+		  100% {
+			stroke-dasharray: 2, 85.964;
+			stroke-dashoffset: -65.973;
+			-webkit-transform: rotate(90deg);
+					transform: rotate(90deg); } }
+
+		.main {
+		  padding-top: 60px;
+		  -webkit-box-flex: 1;
+		  -webkit-flex: 1;
+			  -ms-flex: 1;
+				  flex: 1;
+		  overflow-x: hidden;
+		  overflow-y: auto;
+		  -webkit-overflow-scrolling: touch; }
+
+		.dialog-container {
+		  background: rgba(0, 0, 0, 0.57);
+		  position: fixed;
+		  left: 0;
+		  top: 0;
+		  width: 100%;
+		  height: 100%;
+		  opacity: 0;
+		  pointer-events: none;
+		  will-change: opacity;
+		  -webkit-transition: opacity 0.333s cubic-bezier(0, 0, 0.21, 1);
+		  transition: opacity 0.333s cubic-bezier(0, 0, 0.21, 1); }
+
+		.dialog-container--visible {
+		  opacity: 1;
+		  pointer-events: auto; }
+
+		.dialog {
+		  background: #FFF;
+		  border-radius: 2px;
+		  box-shadow: 0 0 14px rgba(0, 0, 0, 0.24), 0 14px 28px rgba(0, 0, 0, 0.48);
+		  min-width: 280px;
+		  position: absolute;
+		  left: 50%;
+		  top: 50%;
+		  -webkit-transform: translate(-50%, -50%) translateY(30px);
+				  transform: translate(-50%, -50%) translateY(30px);
+		  -webkit-transition: -webkit-transform 0.333s cubic-bezier(0, 0, 0.21, 1) 0.05s;
+		  transition: -webkit-transform 0.333s cubic-bezier(0, 0, 0.21, 1) 0.05s;
+		  transition: transform 0.333s cubic-bezier(0, 0, 0.21, 1) 0.05s;
+		  transition: transform 0.333s cubic-bezier(0, 0, 0.21, 1) 0.05s, -webkit-transform 0.333s cubic-bezier(0, 0, 0.21, 1) 0.05s;
+		  padding: 24px; }
+
+		.card {
+		  padding: 16px;
+		  position: relative;
+		  box-sizing: border-box;
+		  background: #fff;
+		  border-radius: 2px;
+		  margin: 16px;
+		  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12); }
+
+		.weather-forecast .location {
+		  font-size: 1.75em; }
+
+		.weather-forecast .date, .weather-forecast .description {
+		  font-size: 1.25em; }
+
+		.weather-forecast .current {
+		  display: -webkit-box;
+		  display: -webkit-flex;
+		  display: -ms-flexbox;
+		  display: flex; }
+		  .weather-forecast .current .icon {
+			width: 128px;
+			height: 128px; }
+		  .weather-forecast .current .visual {
+			display: -webkit-box;
+			display: -webkit-flex;
+			display: -ms-flexbox;
+			display: flex;
+			font-size: 4em; }
+			.weather-forecast .current .visual .scale {
+			  font-size: 0.5em;
+			  vertical-align: super; }
+		  .weather-forecast .current .visual, .weather-forecast .current .description {
+			-webkit-box-flex: 1;
+			-webkit-flex-grow: 1;
+				-ms-flex-positive: 1;
+					flex-grow: 1; }
+		  .weather-forecast .current .feels-like:before {
+			content: 'Feels like: ';
+			color: #888; }
+		  .weather-forecast .current .wind:before {
+			content: 'Wind: ';
+			color: #888; }
+		  .weather-forecast .current .precip:before {
+			content: 'Precipitation: ';
+			color: #888; }
+		  .weather-forecast .current .humidity:before {
+			content: 'Humidity: ';
+			color: #888; }
+		  .weather-forecast .current .pollen:before {
+			content: 'Pollen Count: ';
+			color: #888; }
+		  .weather-forecast .current .pcount:before {
+			content: 'Pollen ';
+			color: #888; }
+
+		.weather-forecast .future {
+		  display: -webkit-box;
+		  display: -webkit-flex;
+		  display: -ms-flexbox;
+		  display: flex; }
+		  .weather-forecast .future .oneday {
+			-webkit-box-flex: 1;
+			-webkit-flex-grow: 1;
+				-ms-flex-positive: 1;
+					flex-grow: 1;
+			text-align: center; }
+			.weather-forecast .future .oneday .icon {
+			  width: 64px;
+			  height: 64px;
+			  margin-left: auto;
+			  margin-right: auto; }
+			.weather-forecast .future .oneday .temp-high, .weather-forecast .future .oneday .temp-low {
+			  display: inline-block; }
+			.weather-forecast .future .oneday .temp-low {
+			  color: #888; }
+
+		.weather-forecast .icon {
+		  background-repeat: no-repeat;
+		  background-size: contain; }
+		  .weather-forecast .icon.clear-day {
+			background-image: 'clear_day.png'; }
+		  .weather-forecast .icon.clear-night {
+			background-image: 'clear_nigth.png'; }
+		  .weather-forecast .icon.rain {
+			background-image: 'rain.png'; }
+		  .weather-forecast .icon.snow {
+			background-image: 'snow.png'; }
+		  .weather-forecast .icon.sleet {
+			background-image: 'sleet.png'; }
+		  .weather-forecast .icon.wind {
+			background-image: 'wind.png'; }
+		  .weather-forecast .icon.fog {
+			background-image: 'fog.png'; }
+		  .weather-forecast .icon.cloudy {
+			background-image: 'cloudy.png'; }
+		  .weather-forecast .icon.partly-cloudy-day {
+			background-image: 'partly-cloudy.png'; }
+		  .weather-forecast .icon.partly-cloudy-night {
+			background-image: 'partly-cloudy.png'; }
+		  .weather-forecast .icon.thunderstorms {
+			background-image: 'thunderstorms.png'; }
+
+		@media (max-width: 450px) {
+		  .weather-forecast .date, .weather-forecast .description {
+			font-size: 0.9em; }
+		  .weather-forecast .current .icon {
+			width: 96px;
+			height: 96px; }
+		  .weather-forecast .current .visual {
+			font-size: 3em; }
+		  .weather-forecast .future .oneday .icon {
+			width: 32px;
+			height: 32px; } }
+    </style>
+
 </head>
 <body>
-    <div class='gooey'></div>
+
+  <header class='header'>
+    <h1 class='header__title'>Vfc AquaControl PWA</h1>
+    <button id='butRefresh' class='headerButton' aria-label='Refresh'></button>
+    <button id='butAdd' class='headerButton' aria-label='Add'></button>
+  </header>
+
+  <main class='main'>
+    <div class='card cardTemplate weather-forecast' hidden>
+      <div class='location'></div>
+      <div class='date'></div>
+      <div class='description'></div>
+      <div class='current'>
+        <div class='visual'>
+          <div class='icon'></div>
+          <div class='temperature'>
+            <span class='value'></span><span class='scale'>°F</span>
+          </div>
+        </div>
+        <div class='description'>
+          <div class='feels-like'>
+            <span class='value'></span><span class='scale'>°F</span>
+          </div>
+          <div class='precip'></div>
+          <div class='humidity'></div>
+          <div class='wind'>
+            <span class='value'></span>
+            <span class='scale'>mph</span>
+            <span class='direction'></span>°
+          </div>
+        </div>
+      </div>
+      <div class='future'>
+        <div class='oneday'>
+          <div class='date'></div>
+          <div class='icon'></div>
+          <div class='temp-high'>
+            <span class='value'></span>°
+          </div>
+          <div class='temp-low'>
+            <span class='value'></span>°
+          </div>
+        </div>
+        <div class='oneday'>
+          <div class='date'></div>
+          <div class='icon'></div>
+          <div class='temp-high'>
+            <span class='value'></span>°
+          </div>
+          <div class='temp-low'>
+            <span class='value'></span>°
+          </div>
+        </div>
+        <div class='oneday'>
+          <div class='date'></div>
+          <div class='icon'></div>
+          <div class='temp-high'>
+            <span class='value'></span>°
+          </div>
+          <div class='temp-low'>
+            <span class='value'></span>°
+          </div>
+        </div>
+        <div class='oneday'>
+          <div class='date'></div>
+          <div class='icon'></div>
+          <div class='temp-high'>
+            <span class='value'></span>°
+          </div>
+          <div class='temp-low'>
+            <span class='value'></span>°
+          </div>
+        </div>
+        <div class='oneday'>
+          <div class='date'></div>
+          <div class='icon'></div>
+          <div class='temp-high'>
+            <span class='value'></span>°
+          </div>
+          <div class='temp-low'>
+            <span class='value'></span>°
+          </div>
+        </div>
+        <div class='oneday'>
+          <div class='date'></div>
+          <div class='icon'></div>
+          <div class='temp-high'>
+            <span class='value'></span>°
+          </div>
+          <div class='temp-low'>
+            <span class='value'></span>°
+          </div>
+        </div>
+        <div class='oneday'>
+          <div class='date'></div>
+          <div class='icon'></div>
+          <div class='temp-high'>
+            <span class='value'></span>°
+          </div>
+          <div class='temp-low'>
+            <span class='value'></span>°
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class='dialog-container'>
+    <div class='dialog'>
+      <div class='dialog-title'>Add new city</div>
+      <div class='dialog-body'>
+        <select id='selectCityToAdd'>
+          <option value='austin'>Austin, TX</option>
+          <option value='boston'>Boston, MA</option>
+          <option value='chicago'>Chicago, IL</option>
+          <option value='portland'>Portland, OR</option>
+          <option value='sanfrancisco'>San Francisco, CA</option>
+          <option value='seattle'>Seattle, WA</option>
+        </select>
+      </div>
+      <div class='dialog-buttons'>
+        <button id='butAddCity' class='button'>Add</button>
+        <button id='butAddCancel' class='button'>Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class='loader'>
+    <svg viewBox='0 0 32 32' width='32' height='32'>
+      <circle id='ud811Spinner' cx='16' cy='16' r='14' fill='none'></circle>
+    </svg>
+  </div>
+
+    <script>
+
+		(function() {
+		  'use strict';
+		  
+		  //Injected data
+		  var injectedForecast = {
+			key: 'newyork',
+			label: 'New York, NY',
+			currently: {
+			  time: 1453489481,
+			  summary: 'Clear',
+			  icon: 'partly-cloudy-day',
+			  temperature: 52.74,
+			  apparentTemperature: 74.34,
+			  precipProbability: 0.20,
+			  humidity: 0.77,
+			  windBearing: 125,
+			  windSpeed: 1.52
+			},
+			daily: {
+			  data: [
+				{icon: 'clear-day', temperatureMax: 55, temperatureMin: 34},
+				{icon: 'rain', temperatureMax: 55, temperatureMin: 34},
+				{icon: 'snow', temperatureMax: 55, temperatureMin: 34},
+				{icon: 'sleet', temperatureMax: 55, temperatureMin: 34},
+				{icon: 'fog', temperatureMax: 55, temperatureMin: 34},
+				{icon: 'wind', temperatureMax: 55, temperatureMin: 34},
+				{icon: 'partly-cloudy-day', temperatureMax: 55, temperatureMin: 34}
+			  ]
+			}
+		  };//end of injected data
+
+		  var weatherAPIUrlBase = 'https://publicdata-weather.firebaseio.com/';
+
+		  var app = {
+			isLoading: true,
+			visibleCards: {},
+			selectedCities: [],
+			spinner: document.querySelector('.loader'),
+			cardTemplate: document.querySelector('.cardTemplate'),
+			container: document.querySelector('.main'),
+			addDialog: document.querySelector('.dialog-container'),
+			daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+		  };
+
+
+		  /*****************************************************************************
+		   *
+		   * Event listeners for UI elements
+		   *
+		   ****************************************************************************/
+
+		  /* Event listener for refresh button */
+		  document.getElementById('butRefresh').addEventListener('click', function() {
+			app.updateForecasts();
+		  });
+
+		  /* Event listener for add new city button */
+		  document.getElementById('butAdd').addEventListener('click', function() {
+			// Open/show the add new city dialog
+			app.toggleAddDialog(true);
+		  });
+
+		  /* Event listener for add city button in add city dialog */
+		  document.getElementById('butAddCity').addEventListener('click', function() {
+			var select = document.getElementById('selectCityToAdd');
+			var selected = select.options[select.selectedIndex];
+			var key = selected.value;
+			var label = selected.textContent;
+			app.getForecast(key, label);
+			app.selectedCities.push({key: key, label: label});
+			app.toggleAddDialog(false);
+		  });
+
+		  /* Event listener for cancel button in add city dialog */
+		  document.getElementById('butAddCancel').addEventListener('click', function() {
+			app.toggleAddDialog(false);
+		  });
+
+
+		  /*****************************************************************************
+		   *
+		   * Methods to update/refresh the UI
+		   *
+		   ****************************************************************************/
+
+		  // Toggles the visibility of the add new city dialog.
+		  app.toggleAddDialog = function(visible) {
+			if (visible) {
+			  app.addDialog.classList.add('dialog-container--visible');
+			} else {
+			  app.addDialog.classList.remove('dialog-container--visible');
+			}
+		  };
+
+		  // Updates a weather card with the latest weather forecast. If the card
+		  // doesn't already exist, it's cloned from the template.
+		  app.updateForecastCard = function(data) {
+			var card = app.visibleCards[data.key];
+			if (!card) {
+			  card = app.cardTemplate.cloneNode(true);
+			  card.classList.remove('cardTemplate');
+			  card.querySelector('.location').textContent = data.label;
+			  card.removeAttribute('hidden');
+			  app.container.appendChild(card);
+			  app.visibleCards[data.key] = card;
+			}
+			card.querySelector('.description').textContent = data.currently.summary;
+			card.querySelector('.date').textContent =
+			  new Date(data.currently.time * 1000);
+			card.querySelector('.current .icon').classList.add(data.currently.icon);
+			card.querySelector('.current .temperature .value').textContent =
+			  Math.round(data.currently.temperature);
+			card.querySelector('.current .feels-like .value').textContent =
+			  Math.round(data.currently.apparentTemperature);
+			card.querySelector('.current .precip').textContent =
+			  Math.round(data.currently.precipProbability * 100) + '%';
+			card.querySelector('.current .humidity').textContent =
+			  Math.round(data.currently.humidity * 100) + '%';
+			card.querySelector('.current .wind .value').textContent =
+			  Math.round(data.currently.windSpeed);
+			card.querySelector('.current .wind .direction').textContent =
+			  data.currently.windBearing;
+			var nextDays = card.querySelectorAll('.future .oneday');
+			var today = new Date();
+			today = today.getDay();
+			for (var i = 0; i < 7; i++) {
+			  var nextDay = nextDays[i];
+			  var daily = data.daily.data[i];
+			  if (daily && nextDay) {
+				nextDay.querySelector('.date').textContent =
+				  app.daysOfWeek[(i + today) % 7];
+				nextDay.querySelector('.icon').classList.add(daily.icon);
+				nextDay.querySelector('.temp-high .value').textContent =
+				  Math.round(daily.temperatureMax);
+				nextDay.querySelector('.temp-low .value').textContent =
+				  Math.round(daily.temperatureMin);
+			  }
+			}
+			if (app.isLoading) {
+			  app.spinner.setAttribute('hidden', true);
+			  app.container.removeAttribute('hidden');
+			  app.isLoading = false;
+			}
+		  };
+
+
+		  /*****************************************************************************
+		   *
+		   * Methods for dealing with the model
+		   *
+		   ****************************************************************************/
+
+		  // Gets a forecast for a specific city and update the card with the data
+		  app.getForecast = function(key, label) {
+			var url = weatherAPIUrlBase + key + '.json';
+			// Make the XHR to get the data, then update the card
+			var request = new XMLHttpRequest();
+			request.onreadystatechange = function() {
+			  if (request.readyState === XMLHttpRequest.DONE) {
+				if (request.status === 200) {
+				  var response = JSON.parse(request.response);
+				  response.key = key;
+				  response.label = label;
+				  app.updateForecastCard(response);
+				}
+			  }
+			};
+			request.open('GET', url);
+			request.send();
+		  };
+
+		  // Iterate all of the cards and attempt to get the latest forecast data
+		  app.updateForecasts = function() {
+			var keys = Object.keys(app.visibleCards);
+			keys.forEach(function(key) {
+			  app.getForecast(key);
+			});
+		  };
+
+		  app.updateForecastCard(injectedForecast);
+		  
+		})();
+    </script>
 </body>
 </html>

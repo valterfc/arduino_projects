@@ -63,3 +63,23 @@ PROGMEM
 https://www.arduino.cc/reference/en/language/variables/utilities/progmem/
 
 
+----- https://www.willpeavy.com/minifier/
+http://minifycode.com/html-minifier/
+
+testes
+https://codepen.io/pgalor/pen/xyPGvJ
+https://codepen.io/himalayasingh/pen/yRPXvv
+https://codepen.io/m4r1vs/pen/qVReQz
+https://codepen.io/Kelbster/pen/JrQypK
+pwa
+https://codepen.io/GBMahili/pen/yVJRWR
+https://openweathermap.org/weather-conditions
+https://github.com/googlecodelabs/your-first-pwapp/find/master
+
+filesystem upload
+https://github.com/esp8266/arduino-esp8266fs-plugin
+https://github.com/valterfc/arduino-esp8266fs-plugin
+https://www.instructables.com/id/Using-ESP8266-SPIFFS/
+http://esp8266.github.io/Arduino/versions/2.0.0/doc/filesystem.html
+https://github.com/zenmanenergy/ESP8266-Arduino-Examples/blob/master/helloworld_read_write_text_file/file.ino
+
