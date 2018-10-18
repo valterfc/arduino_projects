@@ -31,6 +31,18 @@ void setup() {
   //* rotes
   //* use "https://github.com/esp8266/arduino-esp8266fs-plugin" to upload files to ESP8266 SPIFFS
   //**
+  //Associate the handler function to the path
+  //server.on("/", handleRootPath);
+  server.on("/", []() {
+    File_Download("/index_minify.html");
+  });
+  server.on("/files/vfcaquacontrol.png", []() {
+    File_Download("/files/vfcaquacontrol.png");
+  });
+  server.on("/files/manifest.json", []() {
+    File_Download("/files/manifest.json");
+  });
+
   server.on("/files/icons/icon-16x16.png", []() {
     File_Download("/files/icons/icon-16x16.png");
   });
@@ -64,16 +76,6 @@ void setup() {
   server.on("/files/icons/icon-512x512.png", []() {
     File_Download("/files/icons/icon-512x512.png");
   });
-  server.on("/manifest.json", []() {
-    File_Download("/files/manifest.json");
-  });
-
-  //Associate the handler function to the path
-  //server.on("/", handleRootPath);
-  server.on("/", []() {
-    File_Download("/files/index_minify.html");
-  });
-
 
   server.begin();                    //Start the server
   Serial.println("Server listening");
