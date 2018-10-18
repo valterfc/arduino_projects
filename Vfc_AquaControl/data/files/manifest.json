@@ -1,6 +1,6 @@
 {
   "name": "Vfc AquaControl",
-  "short_name": "VfcAC",
+  "short_name": "AquaControl",
   "theme_color": "#1777c4",
   "background_color": "#2196f3",
   "display": "standalone",
@@ -8,12 +8,12 @@
   "start_url": ".",
   "icons": [
     {
-      "src": "files/icons/icon-16x16.png",
+      "src": "files/icons/favicon-16x16.png",
       "sizes": "16x16",
       "type": "image/png"
     },
     {
-      "src": "files/icons/icon-32x32.png",
+      "src": "files/icons/favicon-32x32.png",
       "sizes": "32x32",
       "type": "image/png"
     },

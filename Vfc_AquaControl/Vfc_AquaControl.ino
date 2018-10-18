@@ -43,11 +43,11 @@ void setup() {
     File_Download("/files/manifest.json");
   });
 
-  server.on("/files/icons/icon-16x16.png", []() {
-    File_Download("/files/icons/icon-16x16.png");
+  server.on("/files/icons/favicon-16x16.png", []() {
+    File_Download("/files/icons/favicon-16x16.png");
   });
-  server.on("/files/icons/icon-32x32.png", []() {
-    File_Download("/files/icons/icon-32x32.png");
+  server.on("/files/icons/favicon-32x32.png", []() {
+    File_Download("/files/icons/favicon-32x32.png");
   });
   server.on("/files/icons/icon-72x72.png", []() {
     File_Download("/files/icons/icon-72x72.png");
