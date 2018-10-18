@@ -1,7 +1,6 @@
 #include "ESP8266WiFi.h"
 #include "ESP8266WebServer.h"
-#include "config.h"
-#include "page_index.h"
+#include "config.h" //copy "config.example.h" to "config.h" and edit it
 #include "FS.h"
 
 ESP8266WebServer server(80);
@@ -30,36 +29,8 @@ void setup() {
  
   //**
   //* rotes
+  //* use "https://github.com/esp8266/arduino-esp8266fs-plugin" to upload files to ESP8266 SPIFFS
   //**
-/*  for (int i =0; i< sizeof(lstFilesShare); i++) {
-    Serial.print("File: ");
-    Serial.print(lstFilesShare[i]);
-    
-    //add to routes
-    server.on(lstFilesShare[i], []() {
-      File_Download(lstFilesShare[i]);
-    });
-  }
-*/
-  
-/*
-  Serial.println("add /files/* to rotes");
-  Dir dir = SPIFFS.openDir("");
-  while (dir.next()) {
-      Serial.print("File: ");
-      const String fName = dir.fileName();
-      Serial.print(fName);
-      
-      //add to routes
-      server.on(fName, [](String fName) {
-        File_Download(fName);
-      });
-  }  
-*/
-
-  //server.on("/other", []() {   //Define the handling function for the path
-  //  server.send(200, "text / plain", "Other URL");
-  //});
   server.on("/files/icons/icon-16x16.png", []() {
     File_Download("/files/icons/icon-16x16.png");
   });
@@ -94,9 +65,14 @@ void setup() {
     File_Download("/files/icons/icon-512x512.png");
   });
   server.on("/manifest.json", []() {
-    File_Download("/manifest.json");
+    File_Download("/files/manifest.json");
   });
-  server.on("/", handleRootPath);    //Associate the handler function to the path
+
+  //Associate the handler function to the path
+  //server.on("/", handleRootPath);
+  server.on("/", []() {
+    File_Download("/files/index_minify.html");
+  });
 
 
   server.begin();                    //Start the server
@@ -129,11 +105,6 @@ void loop() {
   digitalWrite(BUILTIN_LED, HIGH); //LED DA PLACA APAGA (ACIONAMENTO COM SINAL LÓGICO INVERSO PARA O PINO 2)
   delay(1000); //INTERVALO DE 1 SEGUNDO
 }
- 
-void handleRootPath() {            //Handler for the rooth path
-  //server.send(200, "text/plain", "Hello world");
-  server.send(200, "text/html; charset=utf-8", printPageIndex());
-}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void File_Download(String fileName) { // This gets called twice, the first pass selects the input, the second pass then processes the command line arguments
   SPIFFS_file_download(fileName);
@@ -144,9 +115,6 @@ void File_Download(String fileName) { // This gets called twice, the first pass 
   //}
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//String PROGMEM rv;
-//char* PROGMEM buffrv;
-
 void SPIFFS_file_download(String filename){
   File download = SPIFFS.open(filename, "r");
   if (download) {
@@ -174,33 +142,29 @@ void SPIFFS_file_download(String filename){
     server.streamFile(download, "application/octet-stream");
     */
 
-    //to load file in browser
+    //to load file inline
     //server.sendHeader("Content-Type", "text/text");
     server.sendHeader("Content-Disposition", "inline");
     //server.sendHeader("Connection", "close");
     server.streamFile(download, contentType);
 
-/*
-    //String PROGMEM rv;
-    int n = download.size();
-    buffrv = (char *) malloc(n);
-    download.readBytes(buffrv,n);
-    rv=buffrv;
-    free(buffrv);
-
-    //int n = download.size();
-    //download.readBytes(rv,n);
-    
-    server.send(200, contentType, rv);
-
-    
-    //server.send(200, contentType, download.readString());
-    //server.send(200, contentType, download.readString());
-    
-*/
-    
     download.close();
   } else ReportFileNotPresent("download"); 
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+String PROGMEM makePageHtml(String bodyTXT) {
+  return String("<!DOCTYPE html>")+
+          "<html lang='en'> "+
+          "<head> "+
+          "  <meta charset='UTF-8'> "+
+          " <meta name='viewport' content='width=device-width, initial-scale=1.0'> "+
+          " <meta http-equiv='X-UA-Compatible' content='ie=edge'> "+
+          " <title>Document</title> "+
+          "</head> "+
+          "<body> "+
+          " \r\n "+bodyTXT+" \r\n"
+          "</body> "+
+          "</html>";
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void ReportFileNotPresent(String target){
@@ -212,3 +176,11 @@ bool fileExt(String filename, String extension) {
   filename.toLowerCase();
   return filename.endsWith(extension);
 }
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//void handleRootPath() {            //Handler for the rooth path
+//  server.send(200, "text/html; charset=utf-8", makePageIndex());
+//}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//String PROGMEM makePageIndex() {
+//  return String("<html></html>"); //your minify page html
+//}
