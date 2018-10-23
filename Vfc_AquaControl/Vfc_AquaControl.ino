@@ -1,24 +1,46 @@
-#include "ESP8266WiFi.h"
+/**
+   Vfc AquaControl by ValterFC
+   https://github.com/valterfc
+   
+   https://github.com/valterfc/arduino_projects/tree/master/Vfc_AquaControl
 
+   This code is released to the "Attribution-NonCommercial 3.0 Unported (CC BY-NC 3.0)"
+   http://creativecommons.org/licenses/by-nc/3.0/
+*/
+
+#include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
+
+#include "ota_update.h"
 #include "config.h" //copy "config.example.h" to "config.h" and edit it
 #include "mqtt_client.h"
 #include "web_server.h"
 
+//BUILTIN_LED - GPIO2 - inverted signal
+const int LED_OFF = HIGH;
+const int LED_ON = LOW;
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void setup() {
   //BUILTIN_LED = GPIO2 DO ESP8266
-  pinMode(BUILTIN_LED, OUTPUT);  //DEFINE O PINO COMO SAÍDA
+  pinMode(BUILTIN_LED, OUTPUT); //set BUILTIN_LED as output
 
   //init serial communication
-  Serial.begin(74880);
+  Serial.begin(74880); //for me, it´s better speed; you can change this to 115200
+  Serial.println("booting");
 
-  //init Wifi
+  //init wifi
   initWiFi();
+
+  //setup OTA update
+  ota_setup();
 
   //webserver setup
   webserver_setup();
 
-  digitalWrite(BUILTIN_LED, HIGH); //LED DA PLACA APAGA (ACIONAMENTO COM SINAL LÓGICO INVERSO PARA O PINO 2)
+  digitalWrite(BUILTIN_LED, LED_OFF); //builtin LED OFF (inverse logic sign for PIN 2)
   delay(1000); //INTERVALO DE 1 SEGUNDO
 
   //MQTT Mosquitto Setup
@@ -26,21 +48,39 @@ void setup() {
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void loop() {
-  //digitalWrite(BUILTIN_LED, LOW); //LED DA PLACA ACENDE (ACIONAMENTO COM SINAL LÓGICO INVERSO PARA O PINO 2)
-  //delay(1000); //INTERVALO DE 1 SEGUNDO
+  //do ota update
+  ota_handle();
+  
+  //digitalWrite(BUILTIN_LED, LED_ON); //builtin LED ON (inverse logic sign for PIN 2)
+  //delay(1000); //1 second interval
 
-  initWiFi();
+  reconnectWiFi();
   webserver_handleClient();
   mqtt_handleClient();
 
-  //digitalWrite(BUILTIN_LED, HIGH); //LED DA PLACA APAGA (ACIONAMENTO COM SINAL LÓGICO INVERSO PARA O PINO 2)
-  //delay(1000); //INTERVALO DE 1 SEGUNDO
+  //digitalWrite(BUILTIN_LED, LED_OFF); //builtin LED OFF (inverse logic sign for PIN 2)
+  //delay(1000); //1 second interval
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void initWiFi()
-{
-    //se já está conectado a rede WI-FI, nada é feito. 
-    //Caso contrário, são efetuadas tentativas de conexão
+void initWiFi() {
+  //hostname
+  WiFi.hostname("aquacontrol");
+  WiFi.mode(WIFI_STA);
+  
+  WiFi.begin(ssid, password);
+
+  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+    Serial.println("Connection Failed! Rebooting...");
+    delay(5000);
+    ESP.restart();
+  }
+
+  Serial.printf("New hostname: %s\n", WiFi.hostname().c_str());
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void reconnectWiFi() {
+    //if you are already connected to the WI-FI network, nothing is done.
+    //Otherwise connection attempts are made
     if (WiFi.status() == WL_CONNECTED)
         return;
          
