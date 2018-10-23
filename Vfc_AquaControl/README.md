@@ -34,6 +34,14 @@ Copy all page files to "/data" and include "server.on" for each file, in "Vfc_Aq
 copy "config.example.h" to "config.h" and edit it
 ```
 
+## Arduino Librarys
+- MQTT Client
+https://github.com/knolleary/pubsubclient
+
+## To test MQTT
+- Client for Android - MyMQTT
+https://play.google.com/store/apps/details?id=at.tripwire.mqtt.client
+
 ## Important
 ```
 Minify the files to reduce processing of ESP8266 (there are online services that do this).
