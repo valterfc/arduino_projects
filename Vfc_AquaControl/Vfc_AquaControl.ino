@@ -9,9 +9,6 @@
 */
 
 #include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
 
 #include "ota_update.h"
 #include "config.h" //copy "config.example.h" to "config.h" and edit it
@@ -64,7 +61,7 @@ void loop() {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void initWiFi() {
   //hostname
-  WiFi.hostname("aquacontrol");
+  WiFi.hostname("esp8266_aquacontrol");
   WiFi.mode(WIFI_STA);
   
   WiFi.begin(ssid, password);
