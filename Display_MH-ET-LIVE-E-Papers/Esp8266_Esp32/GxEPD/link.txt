@@ -1,0 +1,4 @@
+http://mh.nodebb.com/topic/40/mh-et-live-1-54-inches-e-paper/2
+https://github.com/ZinggJM/GxEPD
+https://github.com/greiman/SdFat
+https://github.com/MHEtLive/MH-ET-LIVE-E-Papers
